@@ -40,9 +40,6 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    if args.initial_cash <= 0:
-        raise SystemExit("--initial-cash must be positive")
-
     if args.command == "capture":
         count = asyncio.run(
             capture_market(
@@ -59,6 +56,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "backtest":
+        if args.initial_cash <= 0:
+            raise SystemExit("--initial-cash must be positive")
         policy = UnconfiguredJevPolicy()
         if args.policy == "typesafe":
             policy = TypeSafeJevPolicy(TypeSafeClient.from_environment())
@@ -73,6 +72,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "compare":
+        if args.initial_cash <= 0:
+            raise SystemExit("--initial-cash must be positive")
         policy = UnconfiguredJevPolicy()
         if args.policy == "typesafe":
             policy = TypeSafeJevPolicy(TypeSafeClient.from_environment())
