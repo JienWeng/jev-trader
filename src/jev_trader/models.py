@@ -57,6 +57,16 @@ class OrderBookSnapshot(BaseModel):
         return (self.best_ask - self.best_bid) / self.mid_price * 10_000
 
 
+class ArbitrageContext(BaseModel):
+    model_config = ConfigDict(frozen=True)
+    direction: str = Field(min_length=1)
+    buy_price: float = Field(gt=0)
+    sell_price: float = Field(gt=0)
+    gross_edge_bps: float
+    net_edge_bps: float
+    quantity: float = Field(gt=0)
+
+
 class MarketState(BaseModel):
     """Compact, serializable state presented to a Jev workflow."""
 
@@ -72,6 +82,7 @@ class MarketState(BaseModel):
     estimated_slippage_bps: float = Field(ge=0)
     estimated_gas_bps: float = Field(ge=0)
     data_age_ms: int = Field(ge=0)
+    arbitrage: ArbitrageContext | None = None
 
 
 class JevDecision(BaseModel):
