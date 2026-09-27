@@ -5,7 +5,7 @@ adapter will translate MarketState into TypeSafe questions (Choice, Score, Noul)
 and validate the returned typed values into JevDecision.
 """
 
-from collections.abc import Protocol
+from typing import Protocol
 
 from .models import JevDecision, MarketState
 
