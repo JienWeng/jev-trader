@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import json
 import time
+from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from urllib.request import urlopen
@@ -27,6 +28,12 @@ class CaptureConfig:
     quantity: float = 0.001
 
 
+@asynccontextmanager
+async def _open_text(path: Path):
+    with path.open("w", encoding="utf-8") as stream:
+        yield stream
+
+
 async def capture_market(config: CaptureConfig) -> int:
     """Capture synchronized public Binance and Hyperliquid snapshots."""
     if config.duration_seconds <= 0:
@@ -44,7 +51,7 @@ async def capture_market(config: CaptureConfig) -> int:
     async with (
         connect(_binance_url(config.symbol)) as cex_ws,
         connect("wss://api.hyperliquid.xyz/ws") as dex_ws,
-        config.output.open("w", encoding="utf-8") as output,
+        _open_text(config.output) as output,
     ):
         await dex_ws.send(
             json.dumps(
