@@ -10,3 +10,4 @@ __pycache__/
 !.env.example
 coverage.xml
 htmlcov/
+data/*.jsonl
