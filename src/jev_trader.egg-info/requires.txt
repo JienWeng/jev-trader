@@ -1,6 +1,0 @@
-pydantic<3,>=2.7
-
-[dev]
-pytest<9,>=8.0
-ruff<1,>=0.6
-mypy<2,>=1.10
