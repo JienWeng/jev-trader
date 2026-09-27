@@ -19,6 +19,24 @@ def build_report(summary: BacktestSummary, equity_curve: list[EquityPoint]) -> B
     return BacktestReport(summary=summary, equity_curve=tuple(equity_curve))
 
 
+def write_comparison_report(path: str | Path, summaries: dict[str, BacktestSummary]) -> None:
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        json.dumps(
+            {
+                "policies": {
+                    name: summary.model_dump(mode="json") for name, summary in summaries.items()
+                }
+            },
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
 def write_report(path: str | Path, report: BacktestReport) -> None:
     """Write a stable, human-readable JSON report without secrets."""
     target = Path(path)
