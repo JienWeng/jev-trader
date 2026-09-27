@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import argparse
+import asyncio
 from pathlib import Path
 
 from .backtest import BacktestPortfolio
 from .baseline import RuleBasedPolicy
 from .benchmark import compare_policies
+from .capture import CaptureConfig, capture_market
 from .datasets import read_backtest_ticks_jsonl
 from .jev_policy import UnconfiguredJevPolicy
 from .models import RiskLimits
@@ -27,6 +29,12 @@ def build_parser() -> argparse.ArgumentParser:
     compare.add_argument("--report", type=Path, required=True)
     compare.add_argument("--initial-cash", type=float, default=10_000)
     compare.add_argument("--policy", choices=("safe", "typesafe"), default="typesafe")
+    capture = commands.add_parser("capture", help="capture public Binance and Hyperliquid data")
+    capture.add_argument("--symbol", default="BTCUSDT")
+    capture.add_argument("--coin", default="BTC")
+    capture.add_argument("--duration", type=int, default=60)
+    capture.add_argument("--output", type=Path, required=True)
+    capture.add_argument("--quantity", type=float, default=0.001)
     return parser
 
 
@@ -34,6 +42,21 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.initial_cash <= 0:
         raise SystemExit("--initial-cash must be positive")
+
+    if args.command == "capture":
+        count = asyncio.run(
+            capture_market(
+                CaptureConfig(
+                    symbol=args.symbol,
+                    hyperliquid_coin=args.coin,
+                    duration_seconds=args.duration,
+                    output=args.output,
+                    quantity=args.quantity,
+                )
+            )
+        )
+        print(f"captured_ticks={count} output={args.output}")
+        return 0
 
     if args.command == "backtest":
         policy = UnconfiguredJevPolicy()

@@ -5,6 +5,7 @@ description = "Paper-trading research scaffold for Jev-guided CEX and DEX statis
 requires-python = ">=3.11"
 dependencies = [
   "pydantic>=2.7,<3",
+  "websockets>=15,<16",
 ]
 
 [project.optional-dependencies]
