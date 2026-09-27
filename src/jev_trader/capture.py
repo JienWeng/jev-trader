@@ -10,7 +10,7 @@ from urllib.request import urlopen
 
 from websockets.asyncio.client import connect
 
-from .binance import BinanceDepthEvent, BinanceOrderBook
+from .binance import BinanceDepthEvent, BinanceOrderBook, OrderBookGapError
 from .hyperliquid import HyperliquidL2Book
 from .models import MarketState, Venue
 from .runner import BacktestTick
@@ -79,6 +79,19 @@ async def capture_market(config: CaptureConfig) -> int:
                     event = BinanceDepthEvent.model_validate(raw)
                     try:
                         cex_snapshot = book.apply(event)
+                    except OrderBookGapError:
+                        refreshed = await asyncio.to_thread(_binance_snapshot, config.symbol)
+                        book = BinanceOrderBook.from_snapshot(
+                            symbol=config.symbol,
+                            bids=refreshed["bids"],
+                            asks=refreshed["asks"],
+                            last_update_id=refreshed["lastUpdateId"],
+                        )
+                        try:
+                            cex_snapshot = book.apply(event)
+                        except ValueError:
+                            cex_task = asyncio.create_task(cex_ws.recv())
+                            continue
                     except ValueError:
                         cex_task = asyncio.create_task(cex_ws.recv())
                         continue
